@@ -63,16 +63,27 @@ const fetchMoviesByLanguageAndGenre = async (language, genres, page = 1) => {
 
     return response.data.results
       .filter((movie) => movie.poster_path !== null)
-      .map((movie) => ({
-        id: movie.id,
-        title: movie.title,
-        overview: movie.overview,
-        release_date: movie.release_date,
-        vote_average: movie.vote_average,
-        poster_path: movie.poster_path
-          ? `${IMAGES_URI}${movie.poster_path}`
-          : null,
-      }));
+      .map((movie) => {
+        // Store values in variables
+        const id = movie.id;
+        const title = movie.title;
+        const overview = movie.overview;
+        const release_date = movie.release_date;
+        const vote_average = movie.vote_average;
+        const original_language = movie.original_language;
+
+        return {
+          id,
+          title,
+          overview,
+          release_date,
+          vote_average,
+          original_language,
+          poster_path: movie.poster_path
+            ? `${IMAGES_URI}${movie.poster_path}`
+            : null,
+        };
+      });
   } catch (error) {
     console.error(`Error fetching movies for language ${language}:`, error);
     return [];
