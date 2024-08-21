@@ -16,17 +16,15 @@ export async function createUser(userList) {
 
 export async function getUserById(userId) {
   try {
-    // Fetch the user
     const userResult = await query("SELECT * FROM users WHERE id = $1", [
       userId,
     ]);
     const user = userResult.rows[0];
 
     if (!user) {
-      return null; // User not found
+      return null;
     }
 
-    // Fetch the user's movie preferences
     const movieResult = await query(
       "SELECT languages, genres FROM movies WHERE user_id = $1",
       [userId]
@@ -35,7 +33,6 @@ export async function getUserById(userId) {
     const moviePreferences = movieResult.rows[0];
 
     if (moviePreferences) {
-      // Ensure that languages and genres are arrays
       user.languages = Array.isArray(moviePreferences.languages)
         ? moviePreferences.languages
         : [];
@@ -53,9 +50,3 @@ export async function getUserById(userId) {
     throw error;
   }
 }
-
-// export async function getUserById(userId) {
-//   const result = await query("SELECT * FROM users WHERE id = $1", [userId]);
-//   const user = result.rows[0];
-//   return user;
-// }
