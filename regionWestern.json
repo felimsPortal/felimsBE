@@ -1,0 +1,246 @@
+[
+  {
+    "iso_3166_1": "AT",
+    "english_name": "Austria",
+    "native_name": "Austria"
+  },
+  {
+    "iso_3166_1": "AU",
+    "english_name": "Australia",
+    "native_name": "Australia"
+  },
+
+  {
+    "iso_3166_1": "BE",
+    "english_name": "Belgium",
+    "native_name": "Belgium"
+  },
+
+  {
+    "iso_3166_1": "BG",
+    "english_name": "Bulgaria",
+    "native_name": "Bulgaria"
+  },
+
+  {
+    "iso_3166_1": "CA",
+    "english_name": "Canada",
+    "native_name": "Canada"
+  },
+
+  {
+    "iso_3166_1": "CH",
+    "english_name": "Switzerland",
+    "native_name": "Switzerland"
+  },
+
+  {
+    "iso_3166_1": "CY",
+    "english_name": "Cyprus",
+    "native_name": "Cyprus"
+  },
+  {
+    "iso_3166_1": "CZ",
+    "english_name": "Czech Republic",
+    "native_name": "Czech Republic"
+  },
+  {
+    "iso_3166_1": "DE",
+    "english_name": "Germany",
+    "native_name": "Germany"
+  },
+
+  {
+    "iso_3166_1": "DK",
+    "english_name": "Denmark",
+    "native_name": "Denmark"
+  },
+
+  {
+    "iso_3166_1": "EE",
+    "english_name": "Estonia",
+    "native_name": "Estonia"
+  },
+
+  {
+    "iso_3166_1": "ES",
+    "english_name": "Spain",
+    "native_name": "Spain"
+  },
+
+  {
+    "iso_3166_1": "FI",
+    "english_name": "Finland",
+    "native_name": "Finland"
+  },
+
+  {
+    "iso_3166_1": "FR",
+    "english_name": "France",
+    "native_name": "France"
+  },
+
+  {
+    "iso_3166_1": "GB",
+    "english_name": "United Kingdom",
+    "native_name": "United Kingdom"
+  },
+
+  {
+    "iso_3166_1": "GE",
+    "english_name": "Georgia",
+    "native_name": "Georgia"
+  },
+
+  {
+    "iso_3166_1": "GL",
+    "english_name": "Greenland",
+    "native_name": "Greenland"
+  },
+
+  {
+    "iso_3166_1": "GR",
+    "english_name": "Greece",
+    "native_name": "Greece"
+  },
+
+  {
+    "iso_3166_1": "HU",
+    "english_name": "Hungary",
+    "native_name": "Hungary"
+  },
+
+  {
+    "iso_3166_1": "IE",
+    "english_name": "Ireland",
+    "native_name": "Ireland"
+  },
+  {
+    "iso_3166_1": "IL",
+    "english_name": "Israel",
+    "native_name": "Israel"
+  },
+
+  {
+    "iso_3166_1": "IS",
+    "english_name": "Iceland",
+    "native_name": "Iceland"
+  },
+  {
+    "iso_3166_1": "IT",
+    "english_name": "Italy",
+    "native_name": "Italy"
+  },
+
+  {
+    "iso_3166_1": "LI",
+    "english_name": "Liechtenstein",
+    "native_name": "Liechtenstein"
+  },
+
+  {
+    "iso_3166_1": "LT",
+    "english_name": "Lithuania",
+    "native_name": "Lithuania"
+  },
+  {
+    "iso_3166_1": "LU",
+    "english_name": "Luxembourg",
+    "native_name": "Luxembourg"
+  },
+  {
+    "iso_3166_1": "LV",
+    "english_name": "Latvia",
+    "native_name": "Latvia"
+  },
+
+  {
+    "iso_3166_1": "NL",
+    "english_name": "Netherlands",
+    "native_name": "Netherlands"
+  },
+  {
+    "iso_3166_1": "NO",
+    "english_name": "Norway",
+    "native_name": "Norway"
+  },
+
+  {
+    "iso_3166_1": "NZ",
+    "english_name": "New Zealand",
+    "native_name": "New Zealand"
+  },
+
+  {
+    "iso_3166_1": "PL",
+    "english_name": "Poland",
+    "native_name": "Poland"
+  },
+
+  {
+    "iso_3166_1": "PT",
+    "english_name": "Portugal",
+    "native_name": "Portugal"
+  },
+
+  {
+    "iso_3166_1": "RO",
+    "english_name": "Romania",
+    "native_name": "Romania"
+  },
+
+  {
+    "iso_3166_1": "SI",
+    "english_name": "Slovenia",
+    "native_name": "Slovenia"
+  },
+  {
+    "iso_3166_1": "SJ",
+    "english_name": "Svalbard & Jan Mayen Islands",
+    "native_name": "Svalbard & Jan Mayen"
+  },
+  {
+    "iso_3166_1": "SK",
+    "english_name": "Slovakia",
+    "native_name": "Slovakia"
+  },
+
+  {
+    "iso_3166_1": "UA",
+    "english_name": "Ukraine",
+    "native_name": "Ukraine"
+  },
+
+  {
+    "iso_3166_1": "UM",
+    "english_name": "United States Minor Outlying Islands",
+    "native_name": "U.S. Outlying Islands"
+  },
+  {
+    "iso_3166_1": "US",
+    "english_name": "United States of America",
+    "native_name": "United States"
+  },
+
+  {
+    "iso_3166_1": "XG",
+    "english_name": "East Germany",
+    "native_name": "East Germany"
+  },
+  {
+    "iso_3166_1": "XI",
+    "english_name": "Northern Ireland",
+    "native_name": "Northern Ireland"
+  },
+  {
+    "iso_3166_1": "XK",
+    "english_name": "Kosovo",
+    "native_name": "Kosovo"
+  },
+
+  {
+    "iso_3166_1": "YU",
+    "english_name": "Yugoslavia",
+    "native_name": "Yugoslavia"
+  }
+]

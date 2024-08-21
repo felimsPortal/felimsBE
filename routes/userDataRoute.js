@@ -1,13 +1,19 @@
 import express from "express";
+import { getAllUsers, createUser, getUserById } from "../models/userModels.js";
+import { createUserMovieList } from "../models/movieModels.js";
 
 const userRoutes = express.Router();
-import { getAllUsers, createUser, getUserById } from "../models/userModels.js";
 
-userRoutes.get("/", async function (req, res) {
-  const allUsers = await getAllUsers();
-  console.log(allUsers);
-  res.status(200).json({ payload: allUsers });
-  console.log(req.body, "route function called");
+userRoutes.post("/:id/movies", async function (req, res) {
+  const userId = req.params.id;
+  const { movies } = req.body;
+  try {
+    await createUserMovieList(userId, movies);
+    res.status(200).json({ message: "Movies saved successfully" });
+  } catch (error) {
+    console.error("Error saving movies:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 userRoutes.post("/", async function (req, res) {
@@ -15,6 +21,13 @@ userRoutes.post("/", async function (req, res) {
   const newUser = req.body;
   const result = await createUser(newUser);
   res.status(200).json(result);
+});
+
+userRoutes.get("/", async function (req, res) {
+  const allUsers = await getAllUsers();
+  console.log(allUsers);
+  res.status(200).json({ payload: allUsers });
+  console.log(req.body, "route function called");
 });
 
 userRoutes.get("/:id", async function (req, res) {
@@ -33,10 +46,5 @@ userRoutes.get("/:id", async function (req, res) {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
-// userRoutes.get("/:id", async function (req, res) {
-//   const userId = await getUserById(req.params.id);
-//   res.json({ success: true, payload: userId });
-// });
 
 export default userRoutes;
