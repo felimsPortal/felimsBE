@@ -51,7 +51,7 @@ const fetchMoviesByLanguageAndGenre = async (language, genres, page = 1) => {
         with_original_language: language,
         page: page,
         "vote_count.gte": MIN_VOTE_COUNT,
-        with_genres: genres.join(","),
+        with_genres: genres.join("|"),
       },
     });
 
@@ -71,6 +71,7 @@ const fetchMoviesByLanguageAndGenre = async (language, genres, page = 1) => {
         const release_date = movie.release_date;
         const vote_average = movie.vote_average;
         const original_language = movie.original_language;
+        const genre_ids = movie.genre_ids;
 
         return {
           id,
@@ -79,6 +80,7 @@ const fetchMoviesByLanguageAndGenre = async (language, genres, page = 1) => {
           release_date,
           vote_average,
           original_language,
+          genre_ids,
           poster_path: movie.poster_path
             ? `${IMAGES_URI}${movie.poster_path}`
             : null,
