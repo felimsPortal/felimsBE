@@ -3,12 +3,12 @@ CREATE TABLE users (
     display_name VARCHAR(50) NOT NULL,
     email VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(50) NOT NULL,
-    poster_path VARCHAR(50) NOT NULL;
+    firebase_uid VARCHAR(50) NOT NULL;
 );
 
 CREATE TABLE movies (
     id SERIAL PRIMARY KEY,           
-    user_id INTEGER REFERENCES users(id),
     languages VARCHAR(5)[] NOT NULL,
     genres INTEGER[] NOT NULL
+    firebase_uid VARCHAR(255) REFERENCES users(firebase_uid) ON DELETE CASCADE
 );

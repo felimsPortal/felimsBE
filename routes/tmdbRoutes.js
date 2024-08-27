@@ -3,33 +3,33 @@ import axios from "axios";
 
 const router = express.Router();
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
-const TMDB_BASE_URL = "https://api.themoviedb.org/3/discover/movie";
+const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const IMAGES_URI = "https://image.tmdb.org/t/p/w500";
 
-router.get("/:userId", async (req, res) => {
-  const userId = parseInt(req.params.userId, 10);
-  if (isNaN(userId)) {
-    console.error("Invalid user ID:", req.params.userId);
-    return res.status(400).json({ error: "Invalid user ID" });
-  }
+router.get("/:firebaseUid", async (req, res) => {
+  const firebaseUid = req.params.firebaseUid;
 
   try {
     const userResponse = await axios.get(
-      `http://localhost:3001/api/movies/${userId}`
+      `http://localhost:3001/api/userdata/${firebaseUid}`
     );
     const userData = userResponse.data;
 
-    const genres = Array.isArray(userData.genres) ? userData.genres : [];
-    const languages = Array.isArray(userData.languages)
-      ? userData.languages
+    const genres = Array.isArray(userData.moviePreferences.genres)
+      ? userData.moviePreferences.genres
+      : [];
+    const languages = Array.isArray(userData.moviePreferences.languages)
+      ? userData.moviePreferences.languages
       : [];
     const genresParam = genres.join(",");
     const languagesParam = languages.join(",");
 
-    const url = `${TMDB_BASE_URL}?api_key=${TMDB_API_KEY}&sort_by=vote_average.desc&with_genres=${genresParam}&with_original_language=${languagesParam}`;
+    // Fetch movies
+    const moviesUrl = `${TMDB_BASE_URL}/discover/movie?api_key=${TMDB_API_KEY}&sort_by=vote_average.desc&with_genres=${genresParam}&with_original_language=${languagesParam}`;
+    const moviesResponse = await axios.get(moviesUrl);
 
-    const tmdbResponse = await axios.get(url);
-    const movies = tmdbResponse.data.results
+    // Filter and map movie results
+    const movies = moviesResponse.data.results
       .filter((movie) => movie.poster_path !== null)
       .map((movie) => ({
         id: movie.id,
@@ -37,7 +37,26 @@ router.get("/:userId", async (req, res) => {
         poster_path: `${IMAGES_URI}${movie.poster_path}`,
       }));
 
-    res.json({ movies });
+    // Fetch TV shows
+    const tvUrl = `${TMDB_BASE_URL}/discover/tv?api_key=${TMDB_API_KEY}&sort_by=vote_average.desc&with_genres=${genresParam}&with_original_language=${languagesParam}`;
+    const tvResponse = await axios.get(tvUrl);
+
+    // Filter and map TV show results
+    const tvShows = tvResponse.data.results
+      .filter((tvShow) => tvShow.poster_path !== null)
+      .map((tvShow) => ({
+        id: tvShow.id,
+        title: tvShow.name, // TV shows use 'name' instead of 'title'
+        poster_path: `${IMAGES_URI}${tvShow.poster_path}`,
+      }));
+
+    // Combine movies and TV shows
+    const combinedResults = [...movies, ...tvShows];
+
+    // Log the final results
+    console.log("Final combined results:", combinedResults);
+
+    res.json({ results: combinedResults });
   } catch (error) {
     console.error("Error fetching movies from TMDB:", error);
     res.status(500).json({ error: "Failed to fetch movies from TMDB" });
