@@ -52,7 +52,7 @@ userRoutes.get("/:firebaseUid", async function (req, res) {
   const firebaseUid = req.params.firebaseUid;
   console.log("Received request for Firebase UID:", req.params.firebaseUid);
   try {
-    const user = await getUserByFirebaseUid(firebaseUid); // Use the firebaseUid here
+    const user = await getUserByFirebaseUid(firebaseUid);
     console.log("User fetched:", user);
     if (user) {
       res.status(200).json(user);

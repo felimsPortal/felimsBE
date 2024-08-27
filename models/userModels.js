@@ -32,8 +32,8 @@ export async function getUserByFirebaseUid(firebaseUid) {
     const userId = user.id;
 
     const movieQuery =
-      "SELECT languages, genres FROM movies WHERE user_id = $1";
-    const movieResult = await query(movieQuery, [userId]);
+      "SELECT languages, genres FROM movies WHERE firebase_uid = $1";
+    const movieResult = await query(movieQuery, [firebaseUid]);
 
     if (movieResult.rows.length > 0) {
       user.moviePreferences = movieResult.rows[0];

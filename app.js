@@ -1,9 +1,11 @@
 import express from "express";
 import morgan from "morgan";
 import cors from "cors";
+import dotenv from "dotenv";
+
 import userRoutes from "./routes/userDataRoute.js";
 import movieRoutes from "./routes/movieDataRoutes.js";
-import dotenv from "dotenv";
+import tmdbRoutes from "./routes/tmdbRoutes.js";
 
 dotenv.config();
 
@@ -18,5 +20,6 @@ app.use(
 
 app.use("/api/userdata", userRoutes);
 app.use("/api/movies", movieRoutes);
+app.use("/api/tmdb", tmdbRoutes);
 
 export default app;

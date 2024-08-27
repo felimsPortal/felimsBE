@@ -51,11 +51,8 @@ movieRoutes.get("/:firebaseUid", async (req, res) => {
     const display_name = user.display_name;
     const genres = user.moviePreferences.genres;
     const languages = user.moviePreferences.languages;
-    if (
-      genres.length === 0 ||
-      languages.length === 0 ||
-      display_name.length === 0
-    ) {
+
+    if (genres.length === 0 || languages.length === 0 || display_name === 0) {
       return res
         .status(400)
         .json({ error: "User has not selected any genres or languages" });
@@ -82,6 +79,7 @@ movieRoutes.get("/:firebaseUid", async (req, res) => {
     );
 
     res.json({
+      display_name,
       movies: paginatedMovies,
       total_pages: Math.ceil(uniqueMovies.length / pageSize),
       total_results: uniqueMovies.length,

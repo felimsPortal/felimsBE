@@ -15,6 +15,8 @@ router.get("/:firebaseUid", async (req, res) => {
     );
     const userData = userResponse.data;
 
+    const displayName = userData.display_name;
+
     const genres = Array.isArray(userData.moviePreferences.genres)
       ? userData.moviePreferences.genres
       : [];
@@ -56,7 +58,7 @@ router.get("/:firebaseUid", async (req, res) => {
     // Log the final results
     console.log("Final combined results:", combinedResults);
 
-    res.json({ results: combinedResults });
+    res.json({ display_name: displayName, results: combinedResults });
   } catch (error) {
     console.error("Error fetching movies from TMDB:", error);
     res.status(500).json({ error: "Failed to fetch movies from TMDB" });
