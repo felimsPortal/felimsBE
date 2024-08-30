@@ -60,17 +60,34 @@ movieRoutes.get("/:firebaseUid", async (req, res) => {
 
     const page = parseInt(req.query.page, 10) || 1;
     const pageSize = parseInt(req.query.page_size, 10) || 20;
+    let combinedMovies = [];
+    let total_pages = 0;
+    let total_results = 0;
 
-    const allMovies = (
-      await Promise.all(
-        languages.map((lang) =>
-          fetchMoviesByLanguageAndGenre(lang, genres, page)
-        )
-      )
-    ).flat();
+    for (let lang of languages) {
+      for (let i = page; i < page + 5; i++) {
+        // Fetch next 5 pages
+        const {
+          movies,
+          total_pages: langTotalPages,
+          total_results: langTotalResults,
+        } = await fetchMoviesByLanguageAndGenre(lang, genres, i);
+        combinedMovies = [...combinedMovies, ...movies];
+        total_pages = Math.max(total_pages, langTotalPages);
+        total_results += langTotalResults;
+      }
+    }
+
+    // const allMovies = (
+    //   await Promise.all(
+    //     languages.map((lang) =>
+    //       fetchMoviesByLanguageAndGenre(lang, genres, page)
+    //     )
+    //   )
+    // ).flat();
 
     const uniqueMovies = Array.from(
-      new Map(allMovies.map((movie) => [movie.id, movie])).values()
+      new Map(combinedMovies.map((movie) => [movie.id, movie])).values()
     );
 
     const paginatedMovies = uniqueMovies.slice(
@@ -81,7 +98,8 @@ movieRoutes.get("/:firebaseUid", async (req, res) => {
     res.json({
       display_name,
       movies: paginatedMovies,
-      total_pages: Math.ceil(uniqueMovies.length / pageSize),
+      total_pages: total_pages,
+      // total_pages: Math.ceil(uniqueMovies.length / pageSize),
       total_results: uniqueMovies.length,
     });
   } catch (error) {

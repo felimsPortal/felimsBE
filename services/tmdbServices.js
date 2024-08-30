@@ -61,7 +61,7 @@ export const discoverMedia = async (type, query, page = 1) => {
   }
 
   let allResults = [];
-  let currentPage = 1;
+  let currentPage = page;
   let totalPages = 1;
 
   try {
@@ -118,13 +118,21 @@ export const discoverMedia = async (type, query, page = 1) => {
       }
     } while (currentPage <= totalPages && currentPage <= 50);
 
-    return allResults;
+    return {
+      results: allResults,
+      total_pages: totalPages,
+      total_results: allResults.length,
+    };
   } catch (error) {
     console.error(
       `Error discovering ${type}:`,
       error.response?.data || error.message
     );
-    return [];
+    return {
+      results: [],
+      total_pages: 0,
+      total_results: 0,
+    };
   }
 };
 
@@ -146,8 +154,7 @@ export const fetchMoviesByLanguageAndGenre = async (
         with_genres: genres.join("|"),
       },
     });
-
-    return response.data.results
+    const movies = response.data.results
       .filter((movie) => movie.poster_path !== null && movie.vote_average >= 3)
       .map((movie) => ({
         id: movie.id,
@@ -159,8 +166,32 @@ export const fetchMoviesByLanguageAndGenre = async (
         genre_ids: movie.genre_ids,
         poster_path: `${IMAGES_URI}${movie.poster_path}`,
       }));
+
+    return {
+      movies: movies, // Ensure that movies is returned here
+      total_pages: response.data.total_pages,
+      total_results: response.data.total_results,
+    };
   } catch (error) {
     console.error(`Error fetching movies for language ${language}:`, error);
-    return [];
+    return {
+      movies: [],
+      total_pages: 0,
+      total_results: 0,
+    };
+    // return [];
   }
 };
+
+// const movies = response.data.results
+//   .filter((movie) => movie.poster_path !== null && movie.vote_average >= 3)
+//   .map((movie) => ({
+//     id: movie.id,
+//     title: movie.title,
+//     overview: movie.overview,
+//     release_date: movie.release_date,
+//     vote_average: movie.vote_average,
+//     original_language: movie.original_language,
+//     genre_ids: movie.genre_ids,
+//     poster_path: `${IMAGES_URI}${movie.poster_path}`,
+//   }));
