@@ -95,6 +95,7 @@ export const discoverMedia = async (type, query, page = 1) => {
               original_language: tvShowWithSeasons.original_language,
               genre_ids: tvShowWithSeasons.genres.map((genre) => genre.id),
               poster_path: `${IMAGES_URI}${tvShowWithSeasons.poster_path}`,
+              backdrop_path: `https://image.tmdb.org/t/p/original/${tvShowWithSeasons.backdrop_path}`,
               media_type: type,
               seasons: tvShowWithSeasons.seasons,
             });
@@ -112,6 +113,7 @@ export const discoverMedia = async (type, query, page = 1) => {
             original_language: movie.original_language,
             genre_ids: movie.genre_ids,
             poster_path: `${IMAGES_URI}${movie.poster_path}`,
+            backdrop_path: `https://image.tmdb.org/t/p/original/${movie.backdrop_path}`,
             media_type: type,
           })),
         ];
@@ -165,6 +167,7 @@ export const fetchMoviesByLanguageAndGenre = async (
         original_language: movie.original_language,
         genre_ids: movie.genre_ids,
         poster_path: `${IMAGES_URI}${movie.poster_path}`,
+        backdrop_path: `https://image.tmdb.org/t/p/original/${movie.backdrop_path}`,
       }));
 
     return {
@@ -179,19 +182,44 @@ export const fetchMoviesByLanguageAndGenre = async (
       total_pages: 0,
       total_results: 0,
     };
-    // return [];
   }
 };
 
-// const movies = response.data.results
-//   .filter((movie) => movie.poster_path !== null && movie.vote_average >= 3)
-//   .map((movie) => ({
-//     id: movie.id,
-//     title: movie.title,
-//     overview: movie.overview,
-//     release_date: movie.release_date,
-//     vote_average: movie.vote_average,
-//     original_language: movie.original_language,
-//     genre_ids: movie.genre_ids,
-//     poster_path: `${IMAGES_URI}${movie.poster_path}`,
-//   }));
+export const fetchMoviesByLanguage = async (language, page = 1) => {
+  const url = `${TMDB_BASE_URL}/discover/movie`;
+
+  try {
+    const response = await axios.get(url, {
+      params: {
+        api_key: TMDB_API_KEY,
+        sort_by: "primary_release_date.desc",
+        with_original_language: language,
+        page: page,
+        "vote_count.gte": 50, // adjust this threshold as necessary
+      },
+    });
+    console.log("response", response);
+
+    const movies = response.data.results
+      .filter((movie) => movie.poster_path !== null)
+      .map((movie) => ({
+        id: movie.id,
+        poster_path: `${IMAGES_URI}${movie.poster_path}`,
+        backdrop_path: `https://image.tmdb.org/t/p/original/${movie.backdrop_path}`,
+        original_language: movie.original_language,
+      }));
+
+    return {
+      movies: movies,
+      total_pages: response.data.total_pages,
+      total_results: response.data.total_results,
+    };
+  } catch (error) {
+    console.error(`Error fetching movies for language ${language}:`, error);
+    return {
+      movies: [],
+      total_pages: 0,
+      total_results: 0,
+    };
+  }
+};

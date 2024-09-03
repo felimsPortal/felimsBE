@@ -1,8 +1,6 @@
 import express from "express";
 import axios from "axios";
-
 import { fetchMovieByTmdbId } from "../controllers/movieController.js";
-// import { addMovieToDownload } from "../controllers/movieController.js";
 
 const router = express.Router();
 
@@ -65,40 +63,3 @@ router.post("/download", async (req, res) => {
 });
 
 export default router;
-// router.post("/download", async (req, res) => {
-//   const { tmdbId } = req.body;
-
-//   console.log("TMDB ID received in request:", tmdbId); // Log the received TMDB ID
-
-//   if (!tmdbId) {
-//     return res.status(400).json({ error: "TMDB ID is required" });
-//   }
-
-//   try {
-//     // Call the Radarr API to add the movie to the download queue
-//     const radarrUrl = `${process.env.RADARR_BASE_URL}/movie?tmdbId=${tmdbId}`;
-//     const response = await axios.post(
-//       radarrUrl,
-//       {},
-//       {
-//         headers: {
-//           "X-Api-Key": process.env.RADARR_API_KEY,
-//         },
-//       }
-//     );
-
-//     console.log("Radarr API response:", response.data);
-//     res.status(200).json({ message: "Movie added to download queue" });
-//   } catch (error) {
-//     console.error("Error adding movie to Radarr:", error.message);
-//     res.status(500).json({ error: "Failed to add movie to Radarr" });
-//   }
-// });
-
-// router.post("/download", async (req, res) => {
-//   try {
-//     await addMovieToDownload(req, res); // Use the new controller function
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// });

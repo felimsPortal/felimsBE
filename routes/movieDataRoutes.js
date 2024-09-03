@@ -4,7 +4,11 @@ import {
   fetchMoviesByLanguageAndGenre,
 } from "../services/tmdbServices.js";
 import { getUserByFirebaseUid } from "../models/userModels.js";
-import { createUserMovieList } from "../models/movieModels.js";
+import {
+  createUserMovieList,
+  getUserMoviePreferences,
+} from "../models/movieModels.js";
+import { fetchMoviesByLanguage } from "../services/tmdbServices.js";
 
 const movieRoutes = express.Router();
 
@@ -78,14 +82,6 @@ movieRoutes.get("/:firebaseUid", async (req, res) => {
       }
     }
 
-    // const allMovies = (
-    //   await Promise.all(
-    //     languages.map((lang) =>
-    //       fetchMoviesByLanguageAndGenre(lang, genres, page)
-    //     )
-    //   )
-    // ).flat();
-
     const uniqueMovies = Array.from(
       new Map(combinedMovies.map((movie) => [movie.id, movie])).values()
     );
@@ -105,6 +101,36 @@ movieRoutes.get("/:firebaseUid", async (req, res) => {
   } catch (error) {
     console.error("Error fetching movies:", error);
     res.status(500).json({ error: "Failed to fetch movies" });
+  }
+});
+
+movieRoutes.get("/language/:firebaseUid", async (req, res) => {
+  try {
+    const firebaseUid = req.params.firebaseUid;
+    const { page } = req.query;
+
+    // Fetch the user's movie preferences, including their preferred languages
+    const userPreferences = await getUserMoviePreferences(firebaseUid);
+
+    if (!userPreferences || userPreferences.languages.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "No preferred language found for this user" });
+    }
+
+    // Fetch movies and TV shows for each language
+    const results = [];
+
+    for (const language of userPreferences.languages) {
+      const result = await fetchMoviesByLanguage(language, page || 1);
+      results.push(...result.movies); // Collect movies
+      // You could also fetch TV shows in a similar manner if needed
+    }
+
+    res.status(200).json({ movies: results });
+  } catch (error) {
+    console.error("Error fetching preferred language or movies:", error);
+    res.status(500).json({ error: "Failed to fetch movies by language" });
   }
 });
 

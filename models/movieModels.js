@@ -17,3 +17,22 @@ export async function createUserMovieList(firebaseUid, movieData) {
     throw error;
   }
 }
+export async function getUserMoviePreferences(firebaseUid) {
+  try {
+    const result = await query(
+      "SELECT languages FROM movies WHERE firebase_uid = $1 LIMIT 1",
+      [firebaseUid]
+    );
+
+    if (result.rows.length === 0) {
+      return null; // No preferences found for this user
+    }
+
+    return {
+      languages: result.rows[0].languages,
+    };
+  } catch (error) {
+    console.error("Error fetching user movie preferences:", error);
+    throw error;
+  }
+}
