@@ -1,6 +1,6 @@
 import express from "express";
 import axios from "axios";
-import { fetchMovieByTmdbId } from "../controllers/movieController.js";
+import { fetchMovieByTmdbId } from "../controllers/radarrController.js";
 
 const router = express.Router();
 

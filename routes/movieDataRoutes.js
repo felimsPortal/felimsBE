@@ -8,9 +8,49 @@ import {
   createUserMovieList,
   getUserMoviePreferences,
 } from "../models/movieModels.js";
-import { fetchMoviesByLanguage } from "../services/tmdbServices.js";
+import {
+  fetchMoviesByLanguage,
+  fetchLatestMovies,
+  fetchLatestTVShows,
+} from "../services/tmdbServices.js";
 
 const movieRoutes = express.Router();
+
+movieRoutes.get("/latest", async (req, res) => {
+  const { page = 1 } = req.query;
+
+  try {
+    const result = await fetchLatestMovies(page);
+    res.json({
+      movies: result.movies,
+      total_pages: result.total_pages,
+      total_results: result.total_results,
+    });
+  } catch (error) {
+    console.error("Error fetching latest movies:", error);
+    res.status(500).json({ error: "Failed to fetch latest movies" });
+  }
+});
+
+movieRoutes.get("/latest-tv", async (req, res) => {
+  const { page = 1 } = req.query;
+
+  try {
+    const result = await fetchLatestTVShows(page);
+
+    // Log the actual result to the server console
+    console.log("TV Shows data:", JSON.stringify(result, null, 2)); // Pretty print JSON
+
+    res.json({
+      tvShows: result.tvShows,
+      total_pages: result.total_pages,
+      total_results: result.total_results,
+    });
+  } catch (error) {
+    console.error("Error fetching latest TV shows:", error);
+    res.status(500).json({ error: "Failed to fetch latest TV shows" });
+  }
+});
 
 movieRoutes.post("/:firebaseUid/movies", async function (req, res) {
   try {

@@ -1,5 +1,6 @@
 import express from "express";
 import axios from "axios";
+import { fetchYoutubeTrailerForTvShow } from "../services/tmdbServices.js";
 
 const router = express.Router();
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
@@ -62,6 +63,23 @@ router.get("/:firebaseUid", async (req, res) => {
   } catch (error) {
     console.error("Error fetching movies from TMDB:", error);
     res.status(500).json({ error: "Failed to fetch movies from TMDB" });
+  }
+});
+
+router.get("/tv/:tvShowId/trailer", async (req, res) => {
+  const { tvShowId } = req.params;
+
+  try {
+    const youtubeTrailerId = await fetchYoutubeTrailerForTvShow(tvShowId);
+
+    if (youtubeTrailerId) {
+      res.json({ youtubeTrailerId });
+    } else {
+      res.status(404).json({ error: "YouTube trailer not found" });
+    }
+  } catch (error) {
+    console.error("Error in /tv/:tvShowId/trailer route:", error.message);
+    res.status(500).json({ error: "Failed to fetch YouTube trailer" });
   }
 });
 
