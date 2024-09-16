@@ -1,6 +1,6 @@
 CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    display_name VARCHAR(50) NOT NULL,
+    id SERIAL PRIMARY KEY, 15 / 18
+    display_name VARCHAR(50) NOT NULL, Mark / Sarah
     email VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(50) NOT NULL,
     firebase_uid VARCHAR(50) NOT NULL;

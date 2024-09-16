@@ -1,9 +1,158 @@
 import axios from "axios";
+import { searchMovieByExactTitle } from "../controllers/nzbGeekController.js";
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = process.env.BASE_URI;
 const IMAGES_URI = process.env.IMAGES_URI;
 const MIN_VOTE_COUNT = 10;
+
+export const fetchFilteredSearch = async ({
+  imdbScore,
+  releaseYear,
+  language,
+  genre,
+  page = 1,
+}) => {
+  const url = `${TMDB_BASE_URL}/discover/movie`;
+
+  try {
+    // Build the query parameters based on the filters
+    const params = {
+      api_key: TMDB_API_KEY,
+      page,
+      include_adult: false,
+      "vote_average.gte": imdbScore?.min || 0,
+      "vote_average.lte": imdbScore?.max || 10,
+      "vote_count.gte": MIN_VOTE_COUNT,
+      "primary_release_date.gte": `${releaseYear?.min || 1900}-01-01`,
+      "primary_release_date.lte": `${
+        releaseYear?.max || new Date().getFullYear()
+      }-12-31`,
+      with_original_language: language ? language.slice(0, 2) : undefined,
+      with_genres: genre ? genre : undefined,
+    };
+
+    console.log("TMDb discover API request params:", params);
+
+    const response = await axios.get(url, { params });
+    console.log(`Fetched ${response.data.results.length} movies from TMDB`);
+
+    // New Code: Check availability in nzbGeek
+    const movies = await Promise.all(
+      response.data.results.map(async (movie) => {
+        console.log(`Checking movie: ${movie.title} (TMDB ID: ${movie.id})`);
+
+        // Correctly pass the movie title instead of the whole object
+        const isAvailableInNzbGeek = await searchMovieByExactTitle(movie.title);
+
+        if (isAvailableInNzbGeek) {
+          console.log(
+            `Movie ${movie.title} is available in nzbGeek. Including in results.`
+          );
+          return {
+            id: movie.id,
+            title: movie.title,
+            release_date: movie.release_date,
+            poster_path: `${IMAGES_URI}${movie.poster_path}`,
+            backdrop_path: `https://image.tmdb.org/t/p/original/${movie.backdrop_path}`,
+            vote_average: movie.vote_average,
+            runtime: movie.runtime,
+          };
+        }
+
+        console.log(
+          `Movie ${movie.title} is NOT available in nzbGeek. Excluding from results.`
+        );
+        return null; // Exclude if not available
+      })
+    );
+
+    // Filter out any null results (movies not available in nzbGeek)
+    const filteredMovies = movies.filter((movie) => movie !== null);
+
+    return {
+      movies: filteredMovies,
+      total_pages: response.data.total_pages,
+      total_results: filteredMovies.length,
+    };
+  } catch (error) {
+    console.error("Error fetching filtered search results from TMDb:", error);
+    return { movies: [], total_pages: 0, total_results: 0 };
+  }
+};
+
+// export const fetchFilteredSearch = async ({
+//   imdbScore,
+//   releaseYear,
+//   language,
+//   genre,
+//   page = 1,
+// }) => {
+//   const url = `${TMDB_BASE_URL}/discover/movie`;
+
+//   try {
+//     // Build the query parameters based on the filters
+//     const params = {
+//       api_key: TMDB_API_KEY,
+//       page,
+//       include_adult: false, // Exclude adult content
+//       "vote_average.gte": imdbScore?.min || 0,
+//       "vote_average.lte": imdbScore?.max || 10,
+//       "vote_count.gte": MIN_VOTE_COUNT,
+//       "primary_release_date.gte": `${releaseYear?.min || 1900}-01-01`,
+//       "primary_release_date.lte": `${
+//         releaseYear?.max || new Date().getFullYear()
+//       }-12-31`,
+//       with_original_language: language ? language.slice(0, 2) : undefined,
+//       with_genres: genre ? genre : undefined, // No need to map the genre if it's already an ID
+//     };
+
+//     console.log("TMDb discover API request params:", params);
+
+//     const response = await axios.get(url, { params });
+
+//     console.log(`Fetched ${response.data.results.length} movies from TMDB`);
+
+//     // Map over the TMDB response and check each movie against nzbGeek
+//     const movies = await Promise.all(
+//       response.data.results.map(async (movie) => {
+//         console.log(`Checking movie: ${movie.title} (TMDB ID: ${movie.id})`);
+
+//         const isAvailableInNzbGeek = await checkMovieAvailabilityInNzbGeek(movie.title);
+
+//         if (isAvailableInNzbGeek) {
+//           console.log(`Movie ${movie.title} is available in nzbGeek. Including in results.`);
+//           return {
+//             id: movie.id,
+//             title: movie.title,
+//             release_date: movie.release_date,
+//             poster_path: `${IMAGES_URI}${movie.poster_path}`,
+//             backdrop_path: `https://image.tmdb.org/t/p/original/${movie.backdrop_path}`,
+//             vote_average: movie.vote_average,
+//             runtime: movie.runtime,
+//           };
+//         }
+
+//         console.log(`Movie ${movie.title} is NOT available in nzbGeek. Excluding from results.`);
+//         return null; // Return null if not available in nzbGeek
+//       })
+//     );
+
+//     // Filter out null values (movies not available in nzbGeek)
+//     const availableMovies = movies.filter((movie) => movie !== null);
+
+//     console.log(`Filtered ${availableMovies.length} movies available in nzbGeek`);
+
+//     return {
+//       movies: availableMovies,
+//       total_pages: response.data.total_pages,
+//       total_results: availableMovies.length,
+//     };
+//   } catch (error) {
+//     console.error("Error fetching filtered search results from TMDb:", error);
+//     return { movies: [], total_pages: 0, total_results: 0 };
+//   }
+// };
 
 export const fetchTvShowsWithSeasons = async (tvShowId, page) => {
   try {
@@ -273,6 +422,8 @@ export const fetchLatestMovies = async (page = 1) => {
       release_date: movie.release_date,
       poster_path: `${IMAGES_URI}${movie.poster_path}`,
       backdrop_path: `https://image.tmdb.org/t/p/original/${movie.backdrop_path}`,
+      vote_average: movie.vote_average,
+      runtime: movie.runtime,
     }));
 
     return {

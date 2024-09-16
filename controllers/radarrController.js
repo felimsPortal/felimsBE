@@ -23,8 +23,17 @@ export const fetchMovieByTmdbId = async (tmdbId) => {
         year: movie.year || "N/A",
         youtubeTrailerId: movie.youTubeTrailerId || "N/A",
         genres: movie.genres || [],
-        imdbRating: movie.ratings?.imdb?.value || "N/A",
+        imdbRating: movie.ratings?.imdb?.value || "TBD",
+        tmdbRating: movie.ratings?.tmdb?.value || "TBD",
+        runtime: movie.runtime || "N/A",
+        certification: movie.certification || "N/A",
+        // Conditionally include minimumAvailability if it's "released"
+        ...(movie.minimumAvailability === "released" && {
+          minimumAvailability: movie.minimumAvailability,
+        }),
       };
+
+      console.log("Formatted movie details:", formattedMovie);
 
       return formattedMovie;
     } else {

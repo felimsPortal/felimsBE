@@ -1,11 +1,48 @@
 import express from "express";
 import axios from "axios";
-import { fetchYoutubeTrailerForTvShow } from "../services/tmdbServices.js";
+import {
+  fetchYoutubeTrailerForTvShow,
+  fetchFilteredSearch,
+} from "../services/tmdbServices.js";
 
 const router = express.Router();
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const IMAGES_URI = "https://image.tmdb.org/t/p/w500";
+
+router.get("/filtered", async (req, res) => {
+  const { imdbMin, imdbMax, yearMin, yearMax, language, genre, page } =
+    req.query;
+
+  // Log the incoming query parameters for debugging
+  console.log("Incoming query parameters:", req.query);
+
+  // Prepare filter data
+  const filters = {
+    imdbScore: {
+      min: parseFloat(imdbMin),
+      max: parseFloat(imdbMax),
+    },
+    releaseYear: {
+      min: parseInt(yearMin),
+      max: parseInt(yearMax),
+    },
+    language,
+    genre,
+    page: parseInt(page) || 1, // Default to page 1 if not provided
+  };
+
+  try {
+    // Call the fetchFilteredSearch function and get results
+    const results = await fetchFilteredSearch(filters);
+
+    // Return the filtered search results as JSON
+    res.status(200).json(results);
+  } catch (error) {
+    console.error("Error fetching filtered search results:", error);
+    res.status(500).json({ error: "Failed to fetch filtered search results." });
+  }
+});
 
 router.get("/:firebaseUid", async (req, res) => {
   const firebaseUid = req.params.firebaseUid;
