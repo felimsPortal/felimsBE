@@ -15,6 +15,28 @@ router.get("/movies/:tmdbId", async (req, res) => {
   }
 });
 
+// Route to check if the movie exists in Radarr
+router.get("/check/:tmdbId", async (req, res) => {
+  const { tmdbId } = req.params;
+
+  try {
+    // Make a request to Radarr to check if the movie exists
+    const radarrUrl = `${process.env.RADARR_BASE_URL}/movie?tmdbId=${tmdbId}&apikey=${process.env.RADARR_API_KEY}`;
+    const response = await axios.get(radarrUrl);
+
+    if (response.data.length > 0) {
+      // Movie exists in the Radarr database
+      return res.json({ exists: true, movie: response.data[0] });
+    } else {
+      // Movie does not exist
+      return res.json({ exists: false });
+    }
+  } catch (error) {
+    console.error("Error checking movie in Radarr:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.post("/download", async (req, res) => {
   const { tmdbId } = req.body;
 
@@ -61,5 +83,46 @@ router.post("/download", async (req, res) => {
     res.status(500).json({ error: "Failed to add movie to Radarr" });
   }
 });
+
+// export const addMovieToDownload = async (req, res) => {
+//   const { tmdbId } = req.body; // Expecting tmdbId to be passed in the request body
+
+//   if (!tmdbId) {
+//     return res.status(400).json({ error: "tmdbId is required" });
+//   }
+
+//   try {
+//     const radarrUrl = `${process.env.RADARR_BASE_URL}/movie`;
+//     const response = await axios.post(
+//       radarrUrl,
+//       {
+//         tmdbId: tmdbId,
+//         qualityProfileId: 1, // Adjust based on your setup
+//         monitored: true,
+//         rootFolderPath: "/path/to/your/movies/folder", // Adjust this to your Radarr setup
+//         minimumAvailability: "announced", // or "released" based on your preference
+//         addOptions: {
+//           searchForMovie: true,
+//         },
+//       },
+//       {
+//         headers: {
+//           "X-Api-Key": process.env.RADARR_API_KEY,
+//         },
+//       }
+//     );
+
+//     if (response.status === 201) {
+//       res.status(201).json({ message: "Movie added to download queue" });
+//     } else {
+//       res
+//         .status(response.status)
+//         .json({ error: "Failed to add movie to download queue" });
+//     }
+//   } catch (error) {
+//     console.error("Error adding movie to download queue:", error.message);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
 
 export default router;

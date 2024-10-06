@@ -9,6 +9,7 @@ import tmdbRoutes from "./routes/tmdbRoutes.js";
 import radarrRoutes from "./routes/radarrDataRoutes.js";
 import sonarrRoutes from "./routes/sonarrDataRoutes.js";
 import tvShowsRoutes from "./routes/tvShowsDataRoutes.js";
+import moviePlaybackRoute from "./routes/moviePlaybackRoute.js";
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.use("/api/movies", movieRoutes);
 app.use("/api/tmdb", tmdbRoutes);
 app.use("/api/radar", radarrRoutes);
 app.use("/api/sonar", sonarrRoutes);
+app.use("/api/movie", moviePlaybackRoute);
 console.log("Registered route: /api/sonar");
 // app.use("/api/tvshows", tvShowsRoutes);
 app.use(

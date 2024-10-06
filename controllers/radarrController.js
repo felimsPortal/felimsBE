@@ -18,6 +18,7 @@ export const fetchMovieByTmdbId = async (tmdbId) => {
       // Format the movie data to only include the required fields
       const formattedMovie = {
         title: movie.title,
+        remotePoster: movie.remotePoster,
         originalLanguage: movie.originalLanguage?.name || "N/A",
         overview: movie.overview || "No overview available",
         year: movie.year || "N/A",
@@ -26,6 +27,7 @@ export const fetchMovieByTmdbId = async (tmdbId) => {
         imdbRating: movie.ratings?.imdb?.value || "TBD",
         tmdbRating: movie.ratings?.tmdb?.value || "TBD",
         runtime: movie.runtime || "N/A",
+        genre: movie.genres || "N/A",
         certification: movie.certification || "N/A",
         // Conditionally include minimumAvailability if it's "released"
         ...(movie.minimumAvailability === "released" && {

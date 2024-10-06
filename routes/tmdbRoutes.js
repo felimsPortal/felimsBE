@@ -10,6 +10,81 @@ const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const IMAGES_URI = "https://image.tmdb.org/t/p/w500";
 
+// Route to play the movie by movie name
+router.get("/play/:movieName", (req, res) => {
+  const { movieName } = req.params;
+  const movieDirectory = "D:/Radarr-Movies"; // Path to your movie directory
+
+  console.log(`Incoming request to play movie: ${movieName}`);
+
+  // Read the contents of the movie directory
+  fs.readdir(movieDirectory, (err, files) => {
+    if (err) {
+      console.error("Error reading the movie directory:", err);
+      return res.status(500).json({ error: "Unable to read movie directory" });
+    }
+
+    console.log("Files found in movie directory:", files);
+
+    // Try to find a file that starts with the movie name (ignoring extension)
+    const movieFile = files.find((file) =>
+      file.toLowerCase().startsWith(movieName.toLowerCase())
+    );
+
+    if (!movieFile) {
+      console.error(`Movie file not found for: ${movieName}`);
+      return res.status(404).json({ error: "Movie not found" });
+    }
+
+    console.log(`Movie file found: ${movieFile}`);
+
+    // Construct the full path to the movie file
+    const movieFilePath = path.join(movieDirectory, movieFile);
+
+    // Log the full path of the movie file
+    console.log(`Serving movie file: ${movieFilePath}`);
+
+    // Send the movie file
+    res.sendFile(movieFilePath);
+  });
+});
+// Route to play the movie by movie name
+// router.get("/play/:movieName", (req, res) => {
+//   const { movieName } = req.params;
+//   const movieDirectory = "D:/Radarr-Movies"; // Path to your movie directory
+
+//   // Construct the full path to the movie file
+//   const movieFilePath = path.join(movieDirectory, `${movieName}.mkv`); // Assuming the movie is in MKV format
+
+//   // Check if the movie file exists
+//   if (fs.existsSync(movieFilePath)) {
+//     // Send the movie file
+//     res.sendFile(movieFilePath);
+//   } else {
+//     // If movie is not found, send a 404 error
+//     res.status(404).json({ error: "Movie not found" });
+//   }
+// });
+
+router.get("/movies/:tmdbId", async (req, res) => {
+  const { tmdbId } = req.params;
+
+  try {
+    // Make a request to TMDB to fetch movie details
+    const response = await axios.get(`${TMDB_BASE_URL}/movie/${tmdbId}`, {
+      params: {
+        api_key: TMDB_API_KEY,
+      },
+    });
+
+    // Send the relevant movie details back to the frontend
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error(`Error fetching TMDB movie details for ID ${tmdbId}:`, error);
+    res.status(404).json({ error: "Movie not found" });
+  }
+});
+
 router.get("/filtered", async (req, res) => {
   const { imdbMin, imdbMax, yearMin, yearMax, language, genre, page } =
     req.query;
