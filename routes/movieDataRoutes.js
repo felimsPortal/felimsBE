@@ -1,14 +1,16 @@
 import express from "express";
-import {
-  discoverMedia,
-  fetchMoviesByLanguageAndGenre,
-} from "../services/tmdbServices.js";
+// import {
+
+// } from "../services/tmdbServices.js";
 import { getUserByFirebaseUid } from "../models/userModels.js";
 import {
   createUserMovieList,
   getUserMoviePreferences,
 } from "../models/movieModels.js";
 import {
+  discoverMedia,
+  fetchMoviesByLanguageAndGenre,
+  discoverDocumentaries,
   fetchMoviesByLanguage,
   fetchLatestMovies,
   fetchLatestTVShows,
@@ -82,6 +84,31 @@ movieRoutes.get("/discover", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch discovery results" });
   }
 });
+
+movieRoutes.get("/discover/genre", async (req, res) => {
+  const { page = 1 } = req.query;
+
+  try {
+    const documentariesData = await discoverDocumentaries("", page);
+    console.log("Documentaries Data Sent to Client:", documentariesData); // Log the final response structure
+    res.json({ results: documentariesData });
+  } catch (error) {
+    console.error("Error fetching discovery results:", error);
+    res.status(500).json({ error: "Failed to fetch discovery results" });
+  }
+});
+
+// movieRoutes.get("/discover/genre", async (req, res) => {
+//   const { query = "", page = 1 } = req.query;
+
+//   try {
+//     const results = await discoverDocumentaries(query, page); // Use the new function
+//     res.json({ results });
+//   } catch (error) {
+//     console.error("Error fetching documentary results:", error);
+//     res.status(500).json({ error: "Failed to fetch documentary results" });
+//   }
+// });
 
 movieRoutes.get("/:firebaseUid", async (req, res) => {
   const firebaseUid = req.params.firebaseUid;

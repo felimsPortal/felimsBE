@@ -13,7 +13,7 @@
     "xml2js": "^0.6.2"
   },
   "scripts": {
-    "start": "node -r dotenv/config server.js",
+    "start": "node -r dotenv/config server.js > server.log 2>&1",
     "dev": "nodemon -r dotenv/config server.js"
   },
   "name": "felims_be",

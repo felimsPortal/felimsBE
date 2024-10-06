@@ -81,79 +81,6 @@ export const fetchFilteredSearch = async ({
   }
 };
 
-// export const fetchFilteredSearch = async ({
-//   imdbScore,
-//   releaseYear,
-//   language,
-//   genre,
-//   page = 1,
-// }) => {
-//   const url = `${TMDB_BASE_URL}/discover/movie`;
-
-//   try {
-//     // Build the query parameters based on the filters
-//     const params = {
-//       api_key: TMDB_API_KEY,
-//       page,
-//       include_adult: false, // Exclude adult content
-//       "vote_average.gte": imdbScore?.min || 0,
-//       "vote_average.lte": imdbScore?.max || 10,
-//       "vote_count.gte": MIN_VOTE_COUNT,
-//       "primary_release_date.gte": `${releaseYear?.min || 1900}-01-01`,
-//       "primary_release_date.lte": `${
-//         releaseYear?.max || new Date().getFullYear()
-//       }-12-31`,
-//       with_original_language: language ? language.slice(0, 2) : undefined,
-//       with_genres: genre ? genre : undefined, // No need to map the genre if it's already an ID
-//     };
-
-//     console.log("TMDb discover API request params:", params);
-
-//     const response = await axios.get(url, { params });
-
-//     console.log(`Fetched ${response.data.results.length} movies from TMDB`);
-
-//     // Map over the TMDB response and check each movie against nzbGeek
-//     const movies = await Promise.all(
-//       response.data.results.map(async (movie) => {
-//         console.log(`Checking movie: ${movie.title} (TMDB ID: ${movie.id})`);
-
-//         const isAvailableInNzbGeek = await checkMovieAvailabilityInNzbGeek(movie.title);
-
-//         if (isAvailableInNzbGeek) {
-//           console.log(`Movie ${movie.title} is available in nzbGeek. Including in results.`);
-//           return {
-//             id: movie.id,
-//             title: movie.title,
-//             release_date: movie.release_date,
-//             poster_path: `${IMAGES_URI}${movie.poster_path}`,
-//             backdrop_path: `https://image.tmdb.org/t/p/original/${movie.backdrop_path}`,
-//             vote_average: movie.vote_average,
-//             runtime: movie.runtime,
-//           };
-//         }
-
-//         console.log(`Movie ${movie.title} is NOT available in nzbGeek. Excluding from results.`);
-//         return null; // Return null if not available in nzbGeek
-//       })
-//     );
-
-//     // Filter out null values (movies not available in nzbGeek)
-//     const availableMovies = movies.filter((movie) => movie !== null);
-
-//     console.log(`Filtered ${availableMovies.length} movies available in nzbGeek`);
-
-//     return {
-//       movies: availableMovies,
-//       total_pages: response.data.total_pages,
-//       total_results: availableMovies.length,
-//     };
-//   } catch (error) {
-//     console.error("Error fetching filtered search results from TMDb:", error);
-//     return { movies: [], total_pages: 0, total_results: 0 };
-//   }
-// };
-
 export const fetchTvShowsWithSeasons = async (tvShowId, page) => {
   try {
     const response = await axios.get(`${TMDB_BASE_URL}/tv/${tvShowId}`, {
@@ -298,6 +225,7 @@ export const discoverMedia = async (type, query, page = 1) => {
         ];
       }
     } while (currentPage <= totalPages && currentPage <= 50);
+    console.log("results:", allResults);
 
     return {
       results: allResults,
@@ -316,6 +244,253 @@ export const discoverMedia = async (type, query, page = 1) => {
     };
   }
 };
+
+export const discoverDocumentaries = async (query = "", page = 1) => {
+  const genreId = 99; // Genre ID for documentaries
+
+  let allResults = [];
+  let currentPage = page;
+  let totalPages = 1;
+
+  try {
+    console.log(
+      `Fetching documentaries with genre ID ${genreId}, query: "${query}", page: ${currentPage}`
+    );
+
+    // Fetch movie documentaries
+    const movieResponse = await axios.get(`${TMDB_BASE_URL}/discover/movie`, {
+      params: {
+        api_key: TMDB_API_KEY,
+        query,
+        include_adult: false,
+        page: currentPage,
+        with_genres: genreId,
+        sort_by: "popularity.desc", // Optional: you can sort based on popularity or other parameters
+      },
+    });
+
+    console.log("Movie Response from TMDB:", movieResponse.data);
+
+    // Fetch TV show documentaries
+    const tvResponse = await axios.get(`${TMDB_BASE_URL}/discover/tv`, {
+      params: {
+        api_key: TMDB_API_KEY,
+        query,
+        include_adult: false,
+        page: currentPage,
+        with_genres: genreId,
+        sort_by: "popularity.desc", // Optional: sort based on popularity
+      },
+    });
+
+    console.log("TV Response from TMDB:", tvResponse.data);
+
+    const movieResults = movieResponse.data?.results || [];
+    const tvResults = tvResponse.data?.results || [];
+
+    // Define the filtering criteria
+    const isValidItem = (item) => {
+      const hasValidPoster = item.poster_path !== null;
+      const hasEnoughVotes = item.vote_count > 3; // Ensure vote count is greater than 5
+
+      // Log excluded items for debugging
+      if (!hasValidPoster || !hasEnoughVotes) {
+        console.log(
+          `Excluding Item: ${item.title || item.name} (${
+            item.release_date || item.first_air_date
+          })`
+        );
+        console.log(
+          `Reasons: Poster: ${hasValidPoster}, Vote Count: ${hasEnoughVotes}`
+        );
+      }
+
+      return hasValidPoster && hasEnoughVotes;
+    };
+
+    // Map and filter movie results
+    const filteredMovies = movieResults
+      .filter(isValidItem) // Apply the filter logic
+      .map((movie) => ({
+        id: movie.id,
+        title: movie.title,
+        overview: movie.overview,
+        release_date: movie.release_date,
+        vote_average: movie.vote_average,
+        vote_count: movie.vote_count,
+        original_language: movie.original_language,
+        genre_ids: movie.genre_ids,
+        poster_path: movie.poster_path
+          ? `${IMAGES_URI}${movie.poster_path}`
+          : null,
+        backdrop_path: movie.backdrop_path
+          ? `https://image.tmdb.org/t/p/original/${movie.backdrop_path}`
+          : null,
+        media_type: "movie", // Indicate that this is a movie
+      }));
+
+    // Map and filter TV show results
+    const filteredTvShows = tvResults
+      .filter(isValidItem) // Apply the filter logic
+      .map((tvShow) => ({
+        id: tvShow.id,
+        title: tvShow.name,
+        overview: tvShow.overview,
+        release_date: tvShow.first_air_date,
+        vote_average: tvShow.vote_average,
+        vote_count: tvShow.vote_count,
+        original_language: tvShow.original_language,
+        genre_ids: tvShow.genre_ids,
+        poster_path: tvShow.poster_path
+          ? `${IMAGES_URI}${tvShow.poster_path}`
+          : null,
+        backdrop_path: tvShow.backdrop_path
+          ? `https://image.tmdb.org/t/p/original/${tvShow.backdrop_path}`
+          : null,
+        media_type: "tv", // Indicate that this is a TV show
+      }));
+
+    // Combine filtered movie and TV show results
+    allResults = [...filteredMovies, ...filteredTvShows];
+
+    console.log("Filtered Results:", allResults);
+
+    // Set total pages based on the smaller value of the two
+    totalPages = Math.min(
+      movieResponse.data.total_pages,
+      tvResponse.data.total_pages
+    );
+
+    console.log("Final Combined Results:", allResults);
+    console.log(
+      `Total Pages: ${totalPages}, Total Results: ${allResults.length}`
+    );
+
+    // Return combined results and pagination data
+    return {
+      results: allResults,
+      total_pages: Math.min(totalPages),
+      total_results: allResults.length,
+    };
+  } catch (error) {
+    console.error(
+      "Error fetching documentaries:",
+      error.response?.data || error.message
+    );
+    return {
+      results: [],
+      total_pages: 0,
+      total_results: 0,
+    };
+  }
+};
+
+// export const discoverDocumentaries = async (
+//   query = "",
+//   page = 1,
+//   maxPages = 2
+// ) => {
+//   const genreId = 99; // Genre ID for documentaries
+
+//   const currentDate = new Date(); // Ensure this is correct
+//   let allResults = [];
+//   let currentPage = page;
+//   let totalPages = 1;
+
+//   try {
+//     console.log(
+//       `Fetching documentaries with genre ID ${genreId}, query: "${query}", page: ${currentPage}`
+//     );
+
+//     // Fetch movie documentaries with release date up to today
+//     const movieResponse = await axios.get(`${TMDB_BASE_URL}/discover/movie`, {
+//       params: {
+//         api_key: TMDB_API_KEY,
+//         query: query || "",
+//         include_adult: false,
+//         page: currentPage,
+//         with_genres: genreId,
+//         sort_by: "primary_release_date.desc",
+//         "primary_release_date.lte": currentDate.toISOString().split("T")[0], // Exclude future-dated movies
+//       },
+//     });
+
+//     console.log("Movie Response from TMDB:", movieResponse.data);
+
+//     // Fetch TV show documentaries with air date up to today
+//     const tvResponse = await axios.get(`${TMDB_BASE_URL}/discover/tv`, {
+//       params: {
+//         api_key: TMDB_API_KEY,
+//         query: query || "",
+//         include_adult: false,
+//         page: currentPage,
+//         with_genres: genreId,
+//         sort_by: "first_air_date.desc",
+//         "first_air_date.lte": currentDate.toISOString().split("T")[0], // Exclude future-dated TV shows
+//       },
+//     });
+
+//     console.log("TV Response from TMDB:", tvResponse.data);
+
+//     const movieResults = movieResponse.data?.results || [];
+//     const tvResults = tvResponse.data?.results || [];
+
+//     // Map and filter movie results
+//     const filteredMovies = movieResults.map((movie) => ({
+//       id: movie.id,
+//       title: movie.title,
+//       overview: movie.overview,
+//       release_date: movie.release_date,
+//       vote_average: movie.vote_average,
+//       original_language: movie.original_language,
+//       genre_ids: movie.genre_ids,
+//       poster_path: movie.poster_path
+//         ? `${IMAGES_URI}${movie.poster_path}`
+//         : null,
+//       backdrop_path: movie.backdrop_path
+//         ? `https://image.tmdb.org/t/p/original/${movie.backdrop_path}`
+//         : null,
+//       media_type: "movie", // Indicate movie type
+//     }));
+
+//     // Map and filter TV show results
+//     const filteredTvShows = tvResults.map((tvShow) => ({
+//       id: tvShow.id,
+//       title: tvShow.name,
+//       overview: tvShow.overview,
+//       release_date: tvShow.first_air_date,
+//       vote_average: tvShow.vote_average,
+//       original_language: tvShow.original_language,
+//       genre_ids: tvShow.genre_ids,
+//       poster_path: tvShow.poster_path
+//         ? `${IMAGES_URI}${tvShow.poster_path}`
+//         : null,
+//       backdrop_path: tvShow.backdrop_path
+//         ? `https://image.tmdb.org/t/p/original/${tvShow.backdrop_path}`
+//         : null,
+//       media_type: "tv", // Indicate TV show type
+//     }));
+
+//     // Combine results and set pagination
+//     allResults = [...filteredMovies, ...filteredTvShows];
+//     totalPages = Math.min(
+//       movieResponse.data.total_pages,
+//       tvResponse.data.total_pages
+//     );
+
+//     return {
+//       results: allResults,
+//       total_pages: Math.min(totalPages, maxPages),
+//       total_results: allResults.length,
+//     };
+//   } catch (error) {
+//     console.error(
+//       "Error fetching documentaries:",
+//       error.response?.data || error.message
+//     );
+//     return { results: [], total_pages: 0, total_results: 0 };
+//   }
+// };
 
 export const fetchMoviesByLanguageAndGenre = async (
   language,
